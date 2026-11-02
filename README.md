@@ -1,17 +1,25 @@
-# Placement Cell Management System
+# CareerSync — Placement Cell Management System
 
-This repo is **CareerSync**, a placement cell management system style portal. 
-Students browse jobs, check whether they are eligible, apply before deadlines, and watch their application move through rounds. 
-Admins manage companies, jobs, who gets shortlisted, interview rounds, and results. None of that lives only in the UI... a lot of the rules live in **MySQL** (triggers, procedures, views, audits) so the data stays honest even if someone talks to the API directly (like using postman not the frontend)
+CareerSync is a full-stack portal that brings student applications, recruitment rounds, and placement administration into one place. Students can browse opportunities, check eligibility, apply before deadlines, and track their progress. Administrators manage companies, job postings, shortlists, interview rounds, and results.
 
-it is a **MySQL** database, a **Node.js + Express** API with Passport (local login, JWT, optional Google OAuth), and a **React (Vite)** frontend with Tailwind. If you are opening the project for first time, start the database, run the SQL scripts once, then bring up the server and client and you will have a working demo with seeded users.
+Built with **React, Node.js, Express, and MySQL**, the project uses database triggers, stored procedures, views, and audit records to enforce placement rules beyond the frontend.
+
+## Key features
+
+- Student and administrator dashboards with role-based access.
+- Eligibility checks, job applications, and round-by-round progress tracking.
+- Company and job management, placement analytics, and recruitment results.
+- JWT authentication, optional Google sign-in, and file uploads.
+- Optional Gemini assistant that answers questions using role-scoped placement data.
 
 ## Repository layout
 
+| Path | Purpose |
+| --- | --- |
 | `client/` | The React app: student and admin screens, shared layout, calls to the API via Axios. Run it with Vite (`npm run dev`). |
-| `server/` | The API: route files wire URLs to **controllers**, auth middleware checks JWT and role, and `mysql2` runs the SQL you defined in class. |
+| `server/` | The API: route files wire URLs to **controllers**, auth middleware checks JWT and role, and `mysql2` runs database queries and stored procedures. |
 | `server/sql/schema.sql` | Creates tables, keys, and enums — the structural “shape” of the data. |
-| `server/sql/procedures.sql` | Functions, stored procedures, triggers, and views — where much of the course’s DBMS logic actually lives. |
+| `server/sql/procedures.sql` | Functions, stored procedures, triggers, and views — database-level business logic. |
 | `server/sql/seed.sql` | Wipes and refills demo data so you are not staring at an empty portal. |
 
 ## How the code is laid out
@@ -20,8 +28,9 @@ it is a **MySQL** database, a **Node.js + Express** API with Passport (local log
 
 **Frontend (`client/src/`).** `App.jsx` registers routes and wraps private pages in `ProtectedRoute` so students and admins do not step on each other’s URLs. Student pages live under `pages/student/`, admin under `pages/admin/`. Shared chrome (sidebar, top bar, go back, **Gemini chat**) comes from `components/layout/` (`PageWrapper` mounts **`AiAssistant.jsx`**). `context/AuthContext.jsx` holds who is logged in after the token is stored; `services/api.js` is the Axios instance that attaches the JWT. Styling is Tailwind utility classes on those components.
 
-# How to Run (Step-by-Step Guide)
-If you are running this project from a ZIP file or cloning it to a new machine, follow these precise steps:
+## Getting started
+
+Clone this repository or extract the project ZIP, then set up the database, backend, and frontend below.
 
 ## Prerequisites
 You will need **Node.js** and **MySQL 8.x** on your machine. Optional extras: a **Cloudinary** account if you want uploads to work out of the box, **Google OAuth** credentials if you want “Sign in with Google” for students, and a **Google AI Studio / Gemini API key** if you want the in-app placement assistant.
@@ -53,14 +62,9 @@ mysql -u root -p --database=placement_cell_db < server/sql/seed.sql
 
 ## Backend
 
-```bash
-cd server
-npm install
-npm run dev
-```
+Create `server/.env` before starting the server. Replace the placeholders with your local configuration:
 
-Add a `server/.env` file with your MySQL password and secrets (use your own values in below(copy paste it in .env)):
-
+```dotenv
 PORT=5000
 NODE_ENV=development
 
@@ -71,7 +75,7 @@ DB_PASSWORD=your_password
 DB_NAME=placement_cell_db
 
 # Auth
-JWT_SECRET=anysecretkeyisfine
+JWT_SECRET=replace_with_a_long_random_secret
 JWT_EXPIRES_IN=7d
 
 # File uploads (Leave empty for now if prefer to fill manually)
@@ -86,8 +90,19 @@ GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
 
 # Google Gemini (optional — AI chat on student & admin pages)
 GEMINI_API_KEY=
+```
+
+Install dependencies and start the API:
+
+```bash
+cd server
+npm install
+npm run dev
+```
 
 ## Frontend
+
+Open a second terminal from the repository root:
 
 ```bash
 cd client
@@ -115,7 +130,7 @@ Requests use **`POST /api/ai/chat`** with your JWT and are **rate-limited** to k
 - **Student job detail:** `GET /api/applications/job/:jobId/my-progress` returns that student’s application plus each round with its result — the UI draws the **Placement Rounds** timeline (green cleared, amber current stage, red failed).
 - **Older databases:** if you started from an earlier schema, run **`server/sql/migrate_application_pipeline.sql`** once, then **`procedures.sql`** and **`seed.sql`**, or rebuild from **`schema.sql`** from scratch.
 
-**Default Login Credentials:**
+**Seeded demo credentials (local development only):**
 - Admin: `admin@snu.edu.in` / `admin123`
 - Student: `pa001@snu.edu.in` / `admin123`
 
